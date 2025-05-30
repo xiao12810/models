@@ -82,27 +82,29 @@ def predict_new_patient(input_dict):
     final_input = new_data_encoded[selected_features]
     probability = model.predict_proba(final_input)[:, 1][0]
 
-    # SHAP力图
+    # 生成 SHAP 力图
     explainer = shap.Explainer(model, final_input)
     shap_values = explainer(final_input)
 
-    # 保存 waterfall 图为 HTML 并在 Streamlit 显示
-    shap_html = f"shap_outputs/shap_waterfall_{uuid.uuid4().hex}.html"
-    shap.plots.waterfall(shap_values[0], show=False)
+    # 保存 SHAP 瀑布图为 PNG
     shap_filename = f"shap_waterfall_{uuid.uuid4().hex}.png"
     shap_path = os.path.join(shap_output_dir, shap_filename)
+
     shap.plots.waterfall(shap_values[0], show=False)
     plt.tight_layout()
     plt.savefig(shap_path, dpi=300)
     plt.close()
 
-    return probability, shap_html
+    return probability, shap_path
     
 # 预测按钮
 if st.button("预测CLNM风险概率"):
-    prob, shap_img = predict_new_patient(input_dict)
+    prob, shap_img_path = predict_new_patient(input_dict)
     st.success(f"预测CLNM风险概率为：{prob:.4f}")
 
-    # 显示SHAP图
+    # 显示 SHAP 图
     st.subheader("SHAP 力图（局部解释）")
-    st.image(shap_img)
+    if os.path.exists(shap_img_path):
+        st.image(shap_img_path)
+    else:
+        st.warning("SHAP 图像未能成功生成。")
