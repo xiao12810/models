@@ -74,13 +74,13 @@ def predict_new_patient(input_dict):
     probability = model.predict_proba(final_input)[:, 1][0]
 
     # SHAP 力图
-    explainer = shap.Explainer(model, final_input)
+    explainer = shap.Explainer(model, final_input, feature_names=final_input.columns)
     shap_values = explainer(final_input)
 
     shap_filename = f"shap_force_{uuid.uuid4().hex}.html"
     shap_path = os.path.join(shap_output_dir, shap_filename)
-    shap_html = shap.plots.force(shap_values[0], matplotlib=False)
-    shap.save_html(shap_path, shap_html)
+    force_plot = shap.plots.force(shap_values[0], matplotlib=False)
+    shap.save_html(shap_path, force_plot)
 
     return probability, shap_path
 
@@ -89,7 +89,7 @@ if st.button("预测CLNM风险概率"):
     prob, shap_html_path = predict_new_patient(input_dict)
     st.success(f"预测CLNM风险概率为：{prob:.4f}")
 
-    # 显示SHAP 力图
+    # 显示 SHAP 力图
     st.subheader("SHAP 力图（局部解释）")
     with open(shap_html_path, "r", encoding="utf-8") as f:
         html_content = f.read()
