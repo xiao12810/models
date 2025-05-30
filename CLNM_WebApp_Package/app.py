@@ -36,12 +36,18 @@ sex = st.selectbox("性别", ["Male", "Female"])
 race = st.selectbox("种族", ["White", "Black", "Asian or Pacific Islander", "American Indian/Alaska Native"])
 t_stage = st.selectbox("T 分期", ["T1a", "T1b", "T2", "T3a", "T3b", "T4a", "T4b"])
 hist = st.selectbox("组织学类型", ["PTC", "FTC", "ATC"])
-laterality = st.selectbox("肿瘤侧位", ["Left", "Right", "Bilateral"])
-marital_status = st.selectbox("婚姻状态", ["Married", "Single", "Divorced", "Widowed", "Separated"])
 age = st.slider("年龄", 10, 90, 45)
-tumor_size = st.number_input("肿瘤大小（mm）", min_value=1.0, max_value=200.0, value=15.0)
 
-# 输入构造
+# 构造输入字典
+input_dict = {
+    "Sex": sex,
+    "Race": race,
+    "T stage": t_stage,
+    "ICD-O-3 Hist": hist,
+    "Age": age
+}
+
+# 模型预测函数
 def predict_new_patient(input_dict):
     new_data = pd.DataFrame([input_dict])
     new_data_encoded = pd.get_dummies(new_data)
@@ -64,45 +70,23 @@ def predict_new_patient(input_dict):
     explainer = shap.Explainer(model, final_input)
     shap_values = explainer(final_input)
 
-    # 替换标签
-    label_map = {
-        'Race_White': 'Race: White',
-        'Race_Black': 'Race: Black',
-        'Race_Asian or Pacific Islander': 'Race: Asian or Pacific Islander',
-        'Race_American Indian/Alaska Native': 'Race: American Indian/Alaska Native',
-        'Sex_Male': 'Sex: Male',
-        'Sex_Female': 'Sex: Female'
-    }
-    pretty_feature_names = [label_map.get(col, col) for col in final_input.columns]
-
     force_img_path = os.path.join(shap_output_dir, f"shap_force_{uuid.uuid4().hex}.png")
-    shap.force_plot(
-        base_value=explainer.expected_value,
+    shap.plots.force(
+        base_value=explainer.expected_value[0] if isinstance(explainer.expected_value, np.ndarray) else explainer.expected_value,
         shap_values=shap_values.values[0],
         features=final_input.iloc[0],
-        feature_names=pretty_feature_names,
+        feature_names=final_input.columns.tolist(),
         matplotlib=True, show=False
     )
     plt.tight_layout()
-    plt.savefig(force_img_path, dpi=300, bbox_inches='tight')
+    plt.savefig(force_img_path, dpi=300)
     plt.close()
 
     return probability, force_img_path
 
-# 构造输入字典
-input_dict = {
-    "Sex": sex,
-    "Race": race,
-    "T stage": t_stage,
-    "ICD-O-3 Hist": hist,
-    "Laterality": laterality,
-    "Marital Status": marital_status,
-    "Age": age,
-    "Tumor Size": tumor_size
-}
-
+# 预测按钮
 if st.button("预测CLNM风险概率"):
     prob, shap_force_img = predict_new_patient(input_dict)
     st.success(f"预测CLNM风险概率为：{prob:.4f}")
-    st.subheader("SHAP 力图（个体解释）")
+    st.subheader("SHAP 力图（局部解释）")
     st.image(shap_force_img)
