@@ -41,19 +41,7 @@ marital_status = st.selectbox("婚姻状态", ["Married", "Single", "Divorced", 
 age = st.slider("年龄", 10, 90, 45)
 tumor_size = st.number_input("肿瘤大小（mm）", min_value=1.0, max_value=200.0, value=15.0)
 
-# 构造输入字典
-input_dict = {
-    "Sex": sex,
-    "Race": race,
-    "T stage": t_stage,
-    "ICD-O-3 Hist": hist,
-    "Laterality": laterality,
-    "Marital Status": marital_status,
-    "Age": age,
-    "Tumor Size": tumor_size
-}
-
-# 模型预测函数
+# 输入构造
 def predict_new_patient(input_dict):
     new_data = pd.DataFrame([input_dict])
     new_data_encoded = pd.get_dummies(new_data)
@@ -72,33 +60,49 @@ def predict_new_patient(input_dict):
     final_input = new_data_encoded[selected_features]
     probability = model.predict_proba(final_input)[:, 1][0]
 
-    # SHAP 决策图
-    explainer = shap.Explainer(model, final_input, feature_names=final_input.columns)
+    # SHAP 力图
+    explainer = shap.Explainer(model, final_input)
     shap_values = explainer(final_input)
 
-    shap_values_instance = shap_values.values[0]
-    if isinstance(shap_values_instance, list):
-        shap_values_instance = np.array(shap_values_instance)
+    # 替换标签
+    label_map = {
+        'Race_White': 'Race: White',
+        'Race_Black': 'Race: Black',
+        'Race_Asian or Pacific Islander': 'Race: Asian or Pacific Islander',
+        'Race_American Indian/Alaska Native': 'Race: American Indian/Alaska Native',
+        'Sex_Male': 'Sex: Male',
+        'Sex_Female': 'Sex: Female'
+    }
+    pretty_feature_names = [label_map.get(col, col) for col in final_input.columns]
 
-    decision_img_path = os.path.join(shap_output_dir, f"shap_decision_{uuid.uuid4().hex}.png")
-    shap.decision_plot(
-        base_value=explainer.expected_value[0] if isinstance(explainer.expected_value, (np.ndarray, list)) else explainer.expected_value,
-        shap_values=shap_values_instance,
-        features=final_input.iloc[0].values,
-        feature_names=final_input.columns.tolist(),
-        feature_order='importance',
-        highlight=0,
-        show=False
+    force_img_path = os.path.join(shap_output_dir, f"shap_force_{uuid.uuid4().hex}.png")
+    shap.force_plot(
+        base_value=explainer.expected_value,
+        shap_values=shap_values.values[0],
+        features=final_input.iloc[0],
+        feature_names=pretty_feature_names,
+        matplotlib=True, show=False
     )
     plt.tight_layout()
-    plt.savefig(decision_img_path, dpi=300)
+    plt.savefig(force_img_path, dpi=300, bbox_inches='tight')
     plt.close()
 
-    return probability, decision_img_path
+    return probability, force_img_path
 
-# 预测按钮
+# 构造输入字典
+input_dict = {
+    "Sex": sex,
+    "Race": race,
+    "T stage": t_stage,
+    "ICD-O-3 Hist": hist,
+    "Laterality": laterality,
+    "Marital Status": marital_status,
+    "Age": age,
+    "Tumor Size": tumor_size
+}
+
 if st.button("预测CLNM风险概率"):
-    prob, shap_decision_img = predict_new_patient(input_dict)
+    prob, shap_force_img = predict_new_patient(input_dict)
     st.success(f"预测CLNM风险概率为：{prob:.4f}")
-    st.subheader("SHAP 决策图（逐步解释）")
-    st.image(shap_decision_img)
+    st.subheader("SHAP 力图（个体解释）")
+    st.image(shap_force_img)
