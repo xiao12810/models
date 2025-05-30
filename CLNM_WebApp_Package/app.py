@@ -18,17 +18,17 @@ st.set_page_config(page_title="CLNM 风险预测", layout="centered")
 # 美化标题
 st.markdown(
     """
-    <h3 style='text-align: center; font-family: Arial;'>甲状腺癌中央区淋巴结转移风险预测</h3>
+    <h3 style='text-align: center; font-family: Arial;'>Risk prediction of central lymph node metastasis in thyroid cancer</h3>
     """,
     unsafe_allow_html=True
 )
 
 # 用户输入
-sex = st.selectbox("性别", ["Male", "Female"])
-race = st.selectbox(" 种族", ["White", "Black", "Asian or Pacific Islander", "American Indian/Alaska Native"])
-t_stage = st.selectbox("T 分期", ["T1a", "T1b", "T2", "T3a", "T3b", "T4a", "T4b"])
-hist = st.selectbox(" 组织学类型", ["PTC", "FTC", "ATC"])
-age = st.slider(" 年龄", 10, 90, 45)
+sex = st.selectbox("Sex", ["Male", "Female"])
+race = st.selectbox(" Race", ["White", "Black", "Asian or Pacific Islander", "American Indian/Alaska Native"])
+t_stage = st.selectbox("T Stage", ["T1a", "T1b", "T2", "T3a", "T3b", "T4a", "T4b"])
+hist = st.selectbox(" ICD-O-3 Hist", ["PTC", "FTC", "ATC"])
+age = st.slider(" Age", 10, 90, 45)
 
 # 构造输入字典
 input_dict = {
@@ -60,7 +60,7 @@ def predict_new_patient(input_dict):
     return probability
 
 # 预测按钮
-if st.button(" 预测CLNM风险概率"):
+if st.button(" Predict"):
     prob = predict_new_patient(input_dict)
     st.markdown(
         f"<div style='text-align: center; font-size: 32px; font-weight: bold; color: green;'>预测 CLNM 概率为：{prob:.4f}</div>",
