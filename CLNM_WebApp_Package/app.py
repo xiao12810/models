@@ -18,10 +18,7 @@ st.set_page_config(page_title="CLNM 风险预测", layout="centered")
 # 美化标题
 st.markdown(
     """
-    <h3 style='text-align: center; font-family: Arial;'>
-        由机器学习验证的由性别、种族、T分期、组织学类型和年龄影响的
-        <span style='color: #3366cc;'>由中央区流向</span>风险预测
-    </h3>
+    <h3 style='text-align: center; font-family: Arial;'>甲状腺癌中央区淋巴结转移风险预测</h3>
     """,
     unsafe_allow_html=True
 )
