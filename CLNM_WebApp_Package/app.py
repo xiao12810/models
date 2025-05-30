@@ -6,27 +6,17 @@ import shap
 import matplotlib.pyplot as plt
 import streamlit.components.v1 as components
 import uuid
-
-
-
-# # 加载模型及预处理器
-# model = joblib.load("models/best_lr_model.pkl")
-# scaler = joblib.load("models/minmax_scaler.pkl")
-# selected_features = joblib.load("models/selected_features.pkl")
-# reference_columns = joblib.load("models/reference_columns.pkl")
-# original_df = pd.read_excel("data/final_data_11.xlsx")
 import os
-import joblib
 
 # 获取当前 app.py 文件所在的目录
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
-# 构建完整的路径
+# 构建路径
 model_path = os.path.join(BASE_DIR, "models", "best_lr_model.pkl")
 scaler_path = os.path.join(BASE_DIR, "models", "minmax_scaler.pkl")
 features_path = os.path.join(BASE_DIR, "models", "selected_features.pkl")
 columns_path = os.path.join(BASE_DIR, "models", "reference_columns.pkl")
-original_df = pd.read_excel(os.path.join(BASE_DIR, "data", "final_data_11.xlsx"))
+data_path = os.path.join(BASE_DIR, "data", "final_data_11.xlsx")
 shap_output_dir = os.path.join(BASE_DIR, "shap_outputs")
 os.makedirs(shap_output_dir, exist_ok=True)
 
@@ -35,6 +25,7 @@ model = joblib.load(model_path)
 scaler = joblib.load(scaler_path)
 selected_features = joblib.load(features_path)
 reference_columns = joblib.load(columns_path)
+original_df = pd.read_excel(data_path)
 
 # Streamlit 页面配置
 st.set_page_config(page_title="CLNM 风险预测", layout="centered")
@@ -82,29 +73,24 @@ def predict_new_patient(input_dict):
     final_input = new_data_encoded[selected_features]
     probability = model.predict_proba(final_input)[:, 1][0]
 
-    # 生成 SHAP 力图
+    # SHAP 力图
     explainer = shap.Explainer(model, final_input)
     shap_values = explainer(final_input)
 
-    # 保存 SHAP 瀑布图为 PNG
-    shap_filename = f"shap_waterfall_{uuid.uuid4().hex}.png"
+    shap_filename = f"shap_force_{uuid.uuid4().hex}.html"
     shap_path = os.path.join(shap_output_dir, shap_filename)
-
-    shap.plots.waterfall(shap_values[0], show=False)
-    plt.tight_layout()
-    plt.savefig(shap_path, dpi=300)
-    plt.close()
+    shap_html = shap.plots.force(shap_values[0], matplotlib=False)
+    shap.save_html(shap_path, shap_html)
 
     return probability, shap_path
-    
+
 # 预测按钮
 if st.button("预测CLNM风险概率"):
-    prob, shap_img_path = predict_new_patient(input_dict)
+    prob, shap_html_path = predict_new_patient(input_dict)
     st.success(f"预测CLNM风险概率为：{prob:.4f}")
 
-    # 显示 SHAP 图
+    # 显示SHAP 力图
     st.subheader("SHAP 力图（局部解释）")
-    if os.path.exists(shap_img_path):
-        st.image(shap_img_path)
-    else:
-        st.warning("SHAP 图像未能成功生成。")
+    with open(shap_html_path, "r", encoding="utf-8") as f:
+        html_content = f.read()
+    components.html(html_content, height=400, scrolling=True)
