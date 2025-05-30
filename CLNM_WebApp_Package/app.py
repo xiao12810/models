@@ -84,13 +84,16 @@ def predict_new_patient(input_dict):
     shap_values = explainer(final_input)
 
     decision_img_path = os.path.join(shap_output_dir, f"shap_decision_{uuid.uuid4().hex}.png")
-    shap.decision_plot(
-        base_value=explainer.expected_value[0] if isinstance(explainer.expected_value, (list, np.ndarray)) else explainer.expected_value,
-        shap_values=shap_values.values[0],
-        features=final_input_original.iloc[0],
-        feature_names=final_input_original.columns.tolist(),
-        show=False
-    )
+   shap.decision_plot(
+    base_value=explainer.expected_value[0] if isinstance(explainer.expected_value, np.ndarray) else explainer.expected_value,
+    shap_values=shap_values.values[0],
+    features=final_input.iloc[0].values,
+    feature_names=final_input.columns.tolist(),
+    highlight=0,
+    feature_order='importance',
+    link='logit',  # optional: only if your model is probabilistic (e.g., logistic regression)
+    show=False
+)
     plt.tight_layout()
     plt.savefig(decision_img_path, dpi=300)
     plt.close()
