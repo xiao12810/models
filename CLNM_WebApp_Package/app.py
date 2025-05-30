@@ -8,7 +8,7 @@ import joblib
 # scaler = joblib.load("models/minmax_scaler.pkl")
 # selected_features = joblib.load("models/selected_features.pkl")
 # reference_columns = joblib.load("models/reference_columns.pkl")
-# original_df = pd.read_excel("data/final_data_11.xlsx")
+original_df = pd.read_excel("data/final_data_11.xlsx")
 import os
 import joblib
 
