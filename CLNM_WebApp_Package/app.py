@@ -60,7 +60,7 @@ def predict_new_patient(input_dict):
     return probability
 
 # 预测按钮
-if st.button(" Predict"):
+if st.button(" Predict "):
     prob = predict_new_patient(input_dict)
     st.markdown(
         f"<div style='text-align: center; font-size: 32px; font-weight: bold; color: green;'>预测 CLNM 概率为：{prob:.4f}</div>",
