@@ -2,6 +2,10 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 import joblib
+import shap
+import matplotlib.pyplot as plt
+import streamlit.components.v1 as components
+import uuid
 
 # # 加载模型及预处理器
 # model = joblib.load("models/best_lr_model.pkl")
@@ -73,9 +77,25 @@ def predict_new_patient(input_dict):
 
     final_input = new_data_encoded[selected_features]
     probability = model.predict_proba(final_input)[:, 1][0]
-    return probability
 
+    # SHAP力图
+    explainer = shap.Explainer(model, final_input)
+    shap_values = explainer(final_input)
+
+    # 保存 waterfall 图为 HTML 并在 Streamlit 显示
+    shap_html = f"shap_outputs/shap_waterfall_{uuid.uuid4().hex}.html"
+    shap.plots.waterfall(shap_values[0], show=False)
+    plt.tight_layout()
+    plt.savefig(shap_html.replace(".html", ".png"), dpi=300)
+    plt.close()
+
+    return probability, shap_html
+    
 # 预测按钮
 if st.button("预测CLNM风险概率"):
-    prob = predict_new_patient(input_dict)
+    prob, shap_html = predict_new_patient(input_dict)
     st.success(f"预测CLNM风险概率为：{prob:.4f}")
+
+    # 显示 SHAP 图
+    st.subheader("SHAP 力图（单个预测解释）")
+    st.image(shap_html.replace(".html", ".png"))
