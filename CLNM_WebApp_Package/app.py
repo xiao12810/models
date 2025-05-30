@@ -63,6 +63,6 @@ def predict_new_patient(input_dict):
 if st.button(" Predict "):
     prob = predict_new_patient(input_dict)
     st.markdown(
-        f"<div style='text-align: center; font-size: 32px; font-weight: bold; color: green;'>预测 CLNM 概率为：{prob:.4f}</div>",
+        f"<div style='text-align: center; font-size: 32px; font-weight: bold; color: green;'>CLNM Risk Probability：{prob:.4f}</div>",
         unsafe_allow_html=True
     )
