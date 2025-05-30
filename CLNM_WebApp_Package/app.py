@@ -8,7 +8,7 @@ import joblib
 # scaler = joblib.load("models/minmax_scaler.pkl")
 # selected_features = joblib.load("models/selected_features.pkl")
 # reference_columns = joblib.load("models/reference_columns.pkl")
-original_df = pd.read_excel("data/final_data_11.xlsx")
+# original_df = pd.read_excel("data/final_data_11.xlsx")
 import os
 import joblib
 
@@ -20,6 +20,7 @@ model_path = os.path.join(BASE_DIR, "models", "best_lr_model.pkl")
 scaler_path = os.path.join(BASE_DIR, "models", "minmax_scaler.pkl")
 features_path = os.path.join(BASE_DIR, "models", "selected_features.pkl")
 columns_path = os.path.join(BASE_DIR, "models", "reference_columns.pkl")
+original_df = pd.read_excel(os.path.join(BASE_DIR, "data", "final_data_11.xlsx"))
 
 # 加载模型与预处理器
 model = joblib.load(model_path)
