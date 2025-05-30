@@ -4,7 +4,6 @@ import numpy as np
 import joblib
 import shap
 import matplotlib.pyplot as plt
-import streamlit.components.v1 as components
 import uuid
 import os
 
@@ -73,37 +72,29 @@ def predict_new_patient(input_dict):
     final_input = new_data_encoded[selected_features]
     probability = model.predict_proba(final_input)[:, 1][0]
 
-    # SHAP 分析
+    # SHAP 决策图
     explainer = shap.Explainer(model, final_input, feature_names=final_input.columns)
     shap_values = explainer(final_input)
 
-    # 保存 force 图为 HTML
-    force_html_filename = f"shap_force_{uuid.uuid4().hex}.html"
-    force_html_path = os.path.join(shap_output_dir, force_html_filename)
-    force_plot = shap.plots.force(shap_values[0], matplotlib=False)
-    shap.save_html(force_html_path, force_plot)
-
-    # 保存 waterfall 图为 PNG
-    waterfall_img_filename = f"shap_waterfall_{uuid.uuid4().hex}.png"
-    waterfall_img_path = os.path.join(shap_output_dir, waterfall_img_filename)
-    shap.plots.waterfall(shap_values[0], show=False)
+    decision_img_path = os.path.join(shap_output_dir, f"shap_decision_{uuid.uuid4().hex}.png")
+    shap.decision_plot(
+        base_value=explainer.expected_value,
+        shap_values=shap_values.values[0],
+        features=final_input.iloc[0],
+        feature_names=final_input.columns.tolist(),
+        link='logit',
+        show=False
+    )
     plt.tight_layout()
-    plt.savefig(waterfall_img_path, dpi=300)
+    plt.savefig(decision_img_path, dpi=300)
     plt.close()
 
-    return probability, force_html_path, waterfall_img_path
+    return probability, decision_img_path
 
 # 预测按钮
 if st.button("预测CLNM风险概率"):
-    prob, shap_force_html_path, shap_waterfall_img_path = predict_new_patient(input_dict)
+    prob, shap_decision_img = predict_new_patient(input_dict)
     st.success(f"预测CLNM风险概率为：{prob:.4f}")
 
-    # 显示 SHAP 力图
-    st.subheader("SHAP 力图（局部解释）")
-    with open(shap_force_html_path, "r", encoding="utf-8") as f:
-        html_content = f.read()
-    components.html(html_content, height=400, scrolling=True)
-
-    # 显示 SHAP Waterfall 图
-    st.subheader("SHAP Waterfall 图（局部解释）")
-    st.image(shap_waterfall_img_path)
+    st.subheader("SHAP 决策图（逐步解释）")
+    st.image(shap_decision_img)
