@@ -3,12 +3,29 @@ import pandas as pd
 import numpy as np
 import joblib
 
-# 加载模型及预处理器
-model = joblib.load("models/best_lr_model.pkl")
-scaler = joblib.load("models/minmax_scaler.pkl")
-selected_features = joblib.load("models/selected_features.pkl")
-reference_columns = joblib.load("models/reference_columns.pkl")
-original_df = pd.read_excel("data/final_data_11.xlsx")
+# # 加载模型及预处理器
+# model = joblib.load("models/best_lr_model.pkl")
+# scaler = joblib.load("models/minmax_scaler.pkl")
+# selected_features = joblib.load("models/selected_features.pkl")
+# reference_columns = joblib.load("models/reference_columns.pkl")
+# original_df = pd.read_excel("data/final_data_11.xlsx")
+import os
+import joblib
+
+# 获取当前 app.py 文件所在的目录
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
+# 构建完整的路径
+model_path = os.path.join(BASE_DIR, "models", "best_lr_model.pkl")
+scaler_path = os.path.join(BASE_DIR, "models", "minmax_scaler.pkl")
+features_path = os.path.join(BASE_DIR, "models", "selected_features.pkl")
+columns_path = os.path.join(BASE_DIR, "models", "reference_columns.pkl")
+
+# 加载模型与预处理器
+model = joblib.load(model_path)
+scaler = joblib.load(scaler_path)
+selected_features = joblib.load(features_path)
+reference_columns = joblib.load(columns_path)
 
 # Streamlit 页面配置
 st.set_page_config(page_title="CLNM 风险预测", layout="centered")
