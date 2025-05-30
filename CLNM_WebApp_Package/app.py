@@ -7,8 +7,7 @@ import matplotlib.pyplot as plt
 import streamlit.components.v1 as components
 import uuid
 
-shap_output_dir = os.path.join(BASE_DIR, "shap_outputs")
-os.makedirs(shap_output_dir, exist_ok=True)
+
 
 # # 加载模型及预处理器
 # model = joblib.load("models/best_lr_model.pkl")
@@ -28,6 +27,8 @@ scaler_path = os.path.join(BASE_DIR, "models", "minmax_scaler.pkl")
 features_path = os.path.join(BASE_DIR, "models", "selected_features.pkl")
 columns_path = os.path.join(BASE_DIR, "models", "reference_columns.pkl")
 original_df = pd.read_excel(os.path.join(BASE_DIR, "data", "final_data_11.xlsx"))
+shap_output_dir = os.path.join(BASE_DIR, "shap_outputs")
+os.makedirs(shap_output_dir, exist_ok=True)
 
 # 加载模型与预处理器
 model = joblib.load(model_path)
