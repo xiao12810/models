@@ -2,9 +2,6 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 import joblib
-import shap
-import matplotlib.pyplot as plt
-import uuid
 import os
 
 # 获取当前 app.py 文件所在的目录
@@ -16,8 +13,6 @@ scaler_path = os.path.join(BASE_DIR, "models", "minmax_scaler.pkl")
 features_path = os.path.join(BASE_DIR, "models", "selected_features.pkl")
 columns_path = os.path.join(BASE_DIR, "models", "reference_columns.pkl")
 data_path = os.path.join(BASE_DIR, "data", "final_data_11.xlsx")
-shap_output_dir = os.path.join(BASE_DIR, "shap_outputs")
-os.makedirs(shap_output_dir, exist_ok=True)
 
 # 加载模型与预处理器
 model = joblib.load(model_path)
@@ -28,8 +23,8 @@ original_df = pd.read_excel(data_path)
 
 # Streamlit 页面配置
 st.set_page_config(page_title="CLNM 风险预测", layout="centered")
-st.title("甲状腺癌中央区淋巴结转移风险预测")
-st.write("请填写下列患者特征以预测CLNM的风险。")
+st.markdown("<h1 style='text-align: center;'>甲状腺癌中央区淋巴结转移风险预测</h1>", unsafe_allow_html=True)
+st.write("请填写下列患者特征以预测 CLNM 的风险。")
 
 # 用户输入界面
 sex = st.selectbox("性别", ["Male", "Female"])
@@ -66,27 +61,9 @@ def predict_new_patient(input_dict):
     final_input = new_data_encoded[selected_features]
     probability = model.predict_proba(final_input)[:, 1][0]
 
-    # SHAP 力图
-    explainer = shap.Explainer(model, final_input)
-    shap_values = explainer(final_input)
-
-    force_img_path = os.path.join(shap_output_dir, f"shap_force_{uuid.uuid4().hex}.png")
-    shap.plots.force(
-        base_value=explainer.expected_value[0] if isinstance(explainer.expected_value, np.ndarray) else explainer.expected_value,
-        shap_values=shap_values.values[0],
-        features=final_input.iloc[0],
-        feature_names=final_input.columns.tolist(),
-        matplotlib=True, show=False
-    )
-    plt.tight_layout()
-    plt.savefig(force_img_path, dpi=300)
-    plt.close()
-
-    return probability, force_img_path
+    return probability
 
 # 预测按钮
-if st.button("预测CLNM风险概率"):
-    prob, shap_force_img = predict_new_patient(input_dict)
-    st.success(f"预测CLNM风险概率为：{prob:.4f}")
-    st.subheader("SHAP 力图（局部解释）")
-    st.image(shap_force_img)
+if st.button("预测 CLNM 风险概率"):
+    prob = predict_new_patient(input_dict)
+    st.success(f"预测 CLNM 风险概率为：{prob:.4f}")
