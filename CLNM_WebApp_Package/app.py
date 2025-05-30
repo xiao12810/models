@@ -78,13 +78,12 @@ def predict_new_patient(input_dict):
 
     decision_img_path = os.path.join(shap_output_dir, f"shap_decision_{uuid.uuid4().hex}.png")
     shap.decision_plot(
-        base_value=explainer.expected_value,
-        shap_values=shap_values.values[0],
-        features=final_input.iloc[0],
-        feature_names=final_input.columns.tolist(),
-        link='logit',
-        show=False
-    )
+    base_value=explainer.expected_value,
+    shap_values=shap_values.values[0],
+    features=final_input.iloc[0],
+    feature_names=final_input.columns.tolist(),
+    show=False
+)
     plt.tight_layout()
     plt.savefig(decision_img_path, dpi=300)
     plt.close()
