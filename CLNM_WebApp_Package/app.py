@@ -7,6 +7,9 @@ import matplotlib.pyplot as plt
 import streamlit.components.v1 as components
 import uuid
 
+shap_output_dir = os.path.join(BASE_DIR, "shap_outputs")
+os.makedirs(shap_output_dir, exist_ok=True)
+
 # # 加载模型及预处理器
 # model = joblib.load("models/best_lr_model.pkl")
 # scaler = joblib.load("models/minmax_scaler.pkl")
@@ -85,17 +88,20 @@ def predict_new_patient(input_dict):
     # 保存 waterfall 图为 HTML 并在 Streamlit 显示
     shap_html = f"shap_outputs/shap_waterfall_{uuid.uuid4().hex}.html"
     shap.plots.waterfall(shap_values[0], show=False)
+    shap_filename = f"shap_waterfall_{uuid.uuid4().hex}.png"
+    shap_path = os.path.join(shap_output_dir, shap_filename)
+    shap.plots.waterfall(shap_values[0], show=False)
     plt.tight_layout()
-    plt.savefig(shap_html.replace(".html", ".png"), dpi=300)
+    plt.savefig(shap_path, dpi=300)
     plt.close()
 
     return probability, shap_html
     
 # 预测按钮
 if st.button("预测CLNM风险概率"):
-    prob, shap_html = predict_new_patient(input_dict)
+    prob, shap_img = predict_new_patient(input_dict)
     st.success(f"预测CLNM风险概率为：{prob:.4f}")
 
-    # 显示 SHAP 图
-    st.subheader("SHAP 力图（单个预测解释）")
-    st.image(shap_html.replace(".html", ".png"))
+    # 显示SHAP图
+    st.subheader("SHAP 力图（局部解释）")
+    st.image(shap_img)
